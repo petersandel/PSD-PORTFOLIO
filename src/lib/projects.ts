@@ -136,7 +136,7 @@ export const projects: Project[] = [
       "/images/projects/Houston/PeterS_Houston_3056_Final.jpg",
       "/images/projects/Houston/PeterS_Houston_3063_Final.jpg",
       "/images/projects/Houston/PeterS_Houston_3474_Final.jpg",
-      "/images/projects/Houston/hf_20260611_022135_ecf2363e-8903-43c0-963d-97e14aaedebd.png",
+      "/images/projects/Houston/hf_20260611_022135_ecf2363e-8903-43c0-963d-97e14aaedebd.jpg",
       "/images/projects/Houston/PeterS_Houston_3021_Final.jpg",
       "/images/projects/Houston/PeterS_Houston_3342_Final.jpg",
       "/images/projects/Houston/PeterS_Houston_3311_Final.jpg",
