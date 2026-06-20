@@ -1,0 +1,17 @@
+.git/
+.next/
+node_modules/
+.media-tools/
+media-work/
+output/
+video-backups/
+studio-notes-navigation.backup.md
+SITE_ELEVATION_PLAN.md
+generate-images.mjs
+public/images/projects/**/High-Res/
+public/images/projects/**/tiffs/
+*.tif
+*.tiff
+.env
+.env.*
+!.env.local.example
