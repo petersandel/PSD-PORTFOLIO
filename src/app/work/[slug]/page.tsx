@@ -125,19 +125,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     ["Scope", project.category],
     ["Year", project.year],
   ] as const;
-  const poolHouseProject = projects.find(
-    (projectItem) => projectItem.slug === "pool-house"
-  );
-  const projectIndexProjects = poolHouseProject
-    ? [
-        projects[0],
-        poolHouseProject,
-        ...projects
-          .slice(1)
-          .filter((projectItem) => projectItem.slug !== "pool-house"),
-      ]
-    : projects;
-
   return (
     <main className="bg-charcoal">
       <ProjectSchema
@@ -347,9 +334,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </Link>
           </div>
 
-          <div className="-mx-6 mt-5 overflow-x-auto px-6 scrollbar-hide lg:-mx-8 lg:px-8">
-            <div className="flex snap-x gap-5 pb-1">
-              {projectIndexProjects.map((projectItem) => {
+          <div
+            className="project-index-scroll -mx-6 mt-5 overflow-x-auto px-6 pb-4 lg:-mx-8 lg:px-8"
+            aria-label="Side to side project index"
+          >
+            <div className="flex snap-x gap-5 pb-3">
+              {projects.map((projectItem) => {
                 const isCurrentProject = projectItem.slug === project.slug;
                 const useDirectIndexImage =
                   projectItem.slug === "ps-apartment" ||
@@ -405,6 +395,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 );
               })}
             </div>
+          </div>
+          <div
+            className="mt-2 flex items-center gap-3 text-cream-100/34"
+            aria-hidden="true"
+          >
+            <ArrowLeft className="h-3 w-3 flex-none" />
+            <span className="relative h-px flex-1 overflow-hidden bg-cream-100/14">
+              <span className="absolute inset-y-0 left-0 w-1/3 bg-gold/70" />
+            </span>
+            <ArrowRight className="h-3 w-3 flex-none" />
           </div>
         </div>
       </section>

@@ -6,34 +6,115 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronRight, Calendar, ImageIcon, Upload, X } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  ChevronRight,
+  CreditCard,
+  ImageIcon,
+  Loader2,
+  Upload,
+  X,
+} from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { cn, formatCurrency } from "@/lib/utils";
 
-// Form validation schema with $250K minimum budget requirement
-const clientScreeningSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  projectType: z.enum([
-    "residential-new",
-    "residential-renovation",
-    "hospitality",
-    "commercial",
-    "other",
-  ]),
-  projectLocation: z.string().min(2, "Project location is required"),
-  budget: z.enum(["250k-500k", "500k-1m", "1m-2m", "2m-5m", "5m+"]),
-  timeline: z.enum(["3-6months", "6-12months", "12-18months", "18months+"]),
-  projectDescription: z
-    .string()
-    .min(50, "Please provide more detail about your project (at least 50 characters)"),
-  howDidYouHear: z.string().optional(),
-  inspiration: z.string().optional(),
-});
+const projectTypeValues = [
+  "residential-new",
+  "residential-renovation",
+  "hospitality",
+  "commercial",
+  "other",
+] as const;
+const budgetValues = ["250k-500k", "500k-1m", "1m-2m", "2m-5m", "5m+"] as const;
+const timelineValues = ["3-6months", "6-12months", "12-18months", "18months+"] as const;
+const inquiryTypeValues = ["private-inquiry", "design-consultation"] as const;
+
+type InquiryType = (typeof inquiryTypeValues)[number];
+
+const clientScreeningSchema = z
+  .object({
+    inquiryType: z.enum(inquiryTypeValues),
+    firstName: z.string().min(2, "First name is required"),
+    lastName: z.string().min(2, "Last name is required"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(10, "Please enter a valid phone number"),
+    projectType: z.enum(projectTypeValues).optional(),
+    projectLocation: z.string().optional(),
+    budget: z.enum(budgetValues).optional(),
+    timeline: z.enum(timelineValues).optional(),
+    consultationFocus: z.string().optional(),
+    imageLinks: z.string().optional(),
+    projectDescription: z.string().optional(),
+    howDidYouHear: z.string().optional(),
+    inspiration: z.string().optional(),
+  })
+  .superRefine((data, context) => {
+    if (data.inquiryType === "private-inquiry") {
+      if (!data.projectType) {
+        context.addIssue({
+          code: "custom",
+          path: ["projectType"],
+          message: "Project type is required",
+        });
+      }
+
+      if (!data.projectLocation || data.projectLocation.trim().length < 2) {
+        context.addIssue({
+          code: "custom",
+          path: ["projectLocation"],
+          message: "Project location is required",
+        });
+      }
+
+      if (!data.budget) {
+        context.addIssue({
+          code: "custom",
+          path: ["budget"],
+          message: "Design budget is required",
+        });
+      }
+
+      if (!data.timeline) {
+        context.addIssue({
+          code: "custom",
+          path: ["timeline"],
+          message: "Timeline is required",
+        });
+      }
+    }
+
+    if (
+      data.inquiryType === "design-consultation" &&
+      !data.consultationFocus
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["consultationFocus"],
+        message: "Consultation focus is required",
+      });
+    }
+
+    const minimumDescriptionLength =
+      data.inquiryType === "design-consultation" ? 30 : 50;
+
+    if (
+      !data.projectDescription ||
+      data.projectDescription.trim().length < minimumDescriptionLength
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["projectDescription"],
+        message: `Please provide more detail (at least ${minimumDescriptionLength} characters)`,
+      });
+    }
+  });
 
 type ClientScreeningForm = z.infer<typeof clientScreeningSchema>;
+type ClientScreeningFormProps = {
+  initialInquiryType?: InquiryType;
+};
+type PaymentStatus = "idle" | "checking" | "paid" | "cancelled" | "error";
 type InquiryAttachment = {
   id: string;
   file: File;
@@ -63,10 +144,40 @@ const timelineOptions = [
   { value: "18months+", label: "18+ Months" },
 ];
 
-const stepLabels = ["Contact", "Project", "Residence"];
-const stepTitles = ["Your Details", "Project Details", "The Residence"];
+const inquiryOptions: Array<{
+  value: InquiryType;
+  title: string;
+  text: string;
+}> = [
+  {
+    value: "private-inquiry",
+    title: "Private Interior Design Inquiry",
+    text: "Full-service residential interiors, renovations, new construction, and select destination work.",
+  },
+  {
+    value: "design-consultation",
+    title: "Design Consultation",
+    text: `A focused $${siteConfig.designConsultation.price} video hour for color, layout, art, furniture, or a room decision.`,
+  },
+];
+
+const consultationFocusOptions = [
+  "Color selection",
+  "Artwork selection",
+  "Furniture layout",
+  "Room edit",
+  "Second opinion",
+  "Other focused decision",
+];
+
+const stepLabels = ["Contact", "Direction", "Brief"];
+const stepTitles = {
+  "private-inquiry": ["Your Details", "Project Details", "The Residence"],
+  "design-consultation": ["Your Details", "Consultation Focus", "The Room"],
+} satisfies Record<InquiryType, string[]>;
 const maxAttachments = 8;
 const maxAttachmentSize = 12 * 1024 * 1024;
+const consultationStorageKey = "psd-design-consultation-brief";
 
 const inquiryImages = {
   primary: "/images/projects/Head of the Harbor /PS_HeadofHarbor_1948_Final.jpg",
@@ -90,9 +201,16 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export default function ClientScreeningForm() {
+export default function ClientScreeningForm({
+  initialInquiryType = "private-inquiry",
+}: ClientScreeningFormProps) {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedInquiryType, setSubmittedInquiryType] =
+    useState<InquiryType>(initialInquiryType);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
+  const [paymentMessage, setPaymentMessage] = useState("");
   const [attachments, setAttachments] = useState<InquiryAttachment[]>([]);
   const [attachmentError, setAttachmentError] = useState("");
   const [projectDescriptionLength, setProjectDescriptionLength] = useState(0);
@@ -105,14 +223,21 @@ export default function ClientScreeningForm() {
     trigger,
     clearErrors,
     getValues,
+    watch,
   } = useForm<ClientScreeningForm>({
     resolver: zodResolver(clientScreeningSchema),
     mode: "onChange",
     reValidateMode: "onChange",
+    defaultValues: {
+      inquiryType: initialInquiryType,
+    },
   });
 
   const totalSteps = 3;
-  const currentTitle = stepTitles[step - 1];
+  const inquiryType = watch("inquiryType") ?? initialInquiryType;
+  const isDesignConsultation = inquiryType === "design-consultation";
+  const currentTitle = stepTitles[inquiryType][step - 1];
+  const projectDescriptionMinimum = isDesignConsultation ? 30 : 50;
   const projectDescriptionCharacterCount = Math.max(
     projectDescriptionLength,
     (getValues("projectDescription") ?? "").length
@@ -122,7 +247,7 @@ export default function ClientScreeningForm() {
       const nextLength = event.target.value.length;
       setProjectDescriptionLength(nextLength);
 
-      if (nextLength >= 50) {
+      if (nextLength >= projectDescriptionMinimum) {
         clearErrors("projectDescription");
       }
     },
@@ -133,10 +258,93 @@ export default function ClientScreeningForm() {
   }, [attachments]);
 
   useEffect(() => {
-    if (projectDescriptionCharacterCount >= 50 && errors.projectDescription) {
+    if (
+      projectDescriptionCharacterCount >= projectDescriptionMinimum &&
+      errors.projectDescription
+    ) {
       clearErrors("projectDescription");
     }
-  }, [clearErrors, errors.projectDescription, projectDescriptionCharacterCount]);
+  }, [
+    clearErrors,
+    errors.projectDescription,
+    projectDescriptionCharacterCount,
+    projectDescriptionMinimum,
+  ]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const payment = params.get("payment");
+
+    if (payment === "cancelled") {
+      setPaymentStatus("cancelled");
+      setPaymentMessage(
+        "Payment was cancelled. Your consultation details are still here if you would like to try again."
+      );
+      return;
+    }
+
+    if (!sessionId) {
+      return;
+    }
+
+    const checkoutSessionId = sessionId;
+    let isMounted = true;
+
+    async function verifyCheckoutSession() {
+      setPaymentStatus("checking");
+      setPaymentMessage("Confirming your Stripe payment...");
+
+      try {
+        const response = await fetch(
+          `/api/stripe/checkout-session?session_id=${encodeURIComponent(
+            checkoutSessionId
+          )}`,
+          { cache: "no-store" }
+        );
+        const result = (await response.json()) as {
+          paid?: boolean;
+          error?: string;
+        };
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (response.ok && result.paid) {
+          setPaymentStatus("paid");
+          setPaymentMessage(
+            "Payment confirmed. Open the weekday calendar to choose your consultation time."
+          );
+          setSubmittedInquiryType("design-consultation");
+          setIsSubmitted(true);
+          window.sessionStorage.removeItem(consultationStorageKey);
+          return;
+        }
+
+        setPaymentStatus("error");
+        setPaymentMessage(
+          result.error ||
+            "Stripe could not confirm the payment yet. Please refresh or contact the studio."
+        );
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setPaymentStatus("error");
+        setPaymentMessage(
+          "Stripe could not confirm the payment yet. Please refresh or contact the studio."
+        );
+      }
+    }
+
+    void verifyCheckoutSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -150,11 +358,19 @@ export default function ClientScreeningForm() {
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof ClientScreeningForm)[] = [];
-    
+
     if (step === 1) {
-      fieldsToValidate = ["firstName", "lastName", "email", "phone"];
+      fieldsToValidate = [
+        "inquiryType",
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+      ];
     } else if (step === 2) {
-      fieldsToValidate = ["projectType", "projectLocation", "budget", "timeline"];
+      fieldsToValidate = isDesignConsultation
+        ? ["consultationFocus"]
+        : ["projectType", "projectLocation", "budget", "timeline"];
     }
 
     const isValid = await trigger(fieldsToValidate);
@@ -225,8 +441,67 @@ export default function ClientScreeningForm() {
     setAttachmentError("");
   };
 
+  const startConsultationCheckout = async (data: ClientScreeningForm) => {
+    setIsPaying(true);
+    setPaymentStatus("idle");
+    setPaymentMessage("Opening secure Stripe checkout...");
+
+    try {
+      window.sessionStorage.setItem(
+        consultationStorageKey,
+        JSON.stringify({
+          ...data,
+          attachments: attachments.map((attachment) => ({
+            name: attachment.file.name,
+            size: attachment.file.size,
+            type: attachment.file.type,
+          })),
+        })
+      );
+
+      const response = await fetch("/api/stripe/design-consultation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerEmail: data.email,
+          customerName: `${data.firstName} ${data.lastName}`.trim(),
+          focus: data.consultationFocus,
+          returnPath: window.location.pathname,
+        }),
+      });
+      const result = (await response.json()) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.url) {
+        throw new Error(
+          result.error ||
+            "Stripe checkout could not be created. Please contact the studio."
+        );
+      }
+
+      window.location.href = result.url;
+    } catch (error) {
+      setIsPaying(false);
+      setPaymentStatus("error");
+      setPaymentMessage(
+        error instanceof Error
+          ? error.message
+          : "Stripe checkout could not be created. Please contact the studio."
+      );
+    }
+  };
+
   const onSubmit = async (data: ClientScreeningForm) => {
     try {
+      if (data.inquiryType === "design-consultation") {
+        await startConsultationCheckout(data);
+        return;
+      }
+
       // In production, this would send to your backend/CRM
       console.log("Form submitted:", {
         ...data,
@@ -239,7 +514,8 @@ export default function ClientScreeningForm() {
       
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
+      setSubmittedInquiryType("private-inquiry");
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -266,16 +542,23 @@ export default function ClientScreeningForm() {
           <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-full border border-gold/40 bg-charcoal/42">
             <Check className="h-10 w-10 text-gold" />
           </div>
-          <p className="font-label text-[10px] text-gold">Inquiry Received</p>
+          <p className="font-label text-[10px] text-gold">
+            {submittedInquiryType === "design-consultation"
+              ? "Design Consultation Confirmed"
+              : "Inquiry Received"}
+          </p>
           <h3 className="mt-4 font-display text-4xl leading-none text-cream-100 md:text-5xl">
-            Thank you for sharing the residence.
+            {submittedInquiryType === "design-consultation"
+              ? "Your consultation payment is confirmed."
+              : "Thank you for sharing the residence."}
           </h3>
           <p className="mt-6 text-base leading-8 text-cream-200/78">
-            We&apos;ve received your project details. If the scope is aligned,
-            the studio will follow up to arrange a private conversation.
+            {submittedInquiryType === "design-consultation"
+              ? paymentMessage ||
+                "Open the weekday calendar to select a time for your private video consultation."
+              : "We've received your project details. If the scope is aligned, the studio will follow up to arrange a private conversation."}
           </p>
 
-          {/* Calendly Integration */}
           <div className="mt-9">
             <a
               href={siteConfig.calendly.url}
@@ -284,7 +567,9 @@ export default function ClientScreeningForm() {
               className="btn-gold inline-flex items-center gap-3"
             >
               <Calendar className="h-4 w-4" />
-              Request Consultation
+              {submittedInquiryType === "design-consultation"
+                ? "Open Weekday Calendar"
+                : "Request Consultation"}
             </a>
           </div>
 
@@ -333,7 +618,9 @@ export default function ClientScreeningForm() {
               <div className="flex items-start justify-between gap-8">
                 <div>
                   <p className="font-label text-[9px] text-gold">
-                    Private Inquiry
+                    {isDesignConsultation
+                      ? "Design Consultation"
+                      : "Private Inquiry"}
                   </p>
                   <h2 className="mt-3 font-display text-4xl leading-none text-cream-100 md:text-5xl">
                     {currentTitle}
@@ -459,6 +746,33 @@ export default function ClientScreeningForm() {
                         <p className={fieldError}>{errors.phone.message}</p>
                       )}
                     </label>
+
+                    <fieldset>
+                      <legend className={fieldLabel}>Inquiry Type *</legend>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {inquiryOptions.map((option) => (
+                          <label
+                            key={option.value}
+                            className="block cursor-pointer"
+                          >
+                            <input
+                              type="radio"
+                              value={option.value}
+                              {...register("inquiryType")}
+                              className="peer sr-only"
+                            />
+                            <span className="block min-h-[118px] border border-cream-100/12 bg-cream-100/[0.035] px-5 py-4 transition-all duration-300 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-gold peer-checked:border-gold/70 peer-checked:bg-gold/12 hover:border-cream-100/24">
+                              <span className="block font-label text-[9px] text-cream-100">
+                                {option.title}
+                              </span>
+                              <span className="mt-3 block text-sm leading-6 text-cream-200/62">
+                                {option.text}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
                   </motion.div>
                 )}
 
@@ -471,85 +785,146 @@ export default function ClientScreeningForm() {
                     transition={{ duration: 0.3 }}
                     className="space-y-4"
                   >
-                    <fieldset>
-                      <legend className={fieldLabel}>Project Type *</legend>
-                      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                        {projectTypes.map((type) => (
-                          <label key={type.value} className="block cursor-pointer">
-                            <input
-                              type="radio"
-                              value={type.value}
-                              {...register("projectType")}
-                              className="peer sr-only"
-                            />
-                            <span className={choiceTile}>{type.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {errors.projectType && (
-                        <p className={fieldError}>
-                          {errors.projectType.message}
-                        </p>
-                      )}
-                    </fieldset>
+                    {isDesignConsultation ? (
+                      <>
+                        <fieldset>
+                          <legend className={fieldLabel}>
+                            Consultation Focus *
+                          </legend>
+                          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                            {consultationFocusOptions.map((option) => (
+                              <label
+                                key={option}
+                                className="block cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  value={option}
+                                  {...register("consultationFocus")}
+                                  className="peer sr-only"
+                                />
+                                <span className={choiceTile}>{option}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.consultationFocus && (
+                            <p className={fieldError}>
+                              {errors.consultationFocus.message}
+                            </p>
+                          )}
+                        </fieldset>
 
-                    <label className={fieldFrame} htmlFor="projectLocation">
-                      <span className={fieldLabel}>Project Location *</span>
-                      <input
-                        id="projectLocation"
-                        {...register("projectLocation")}
-                        className={fieldControl}
-                        placeholder="City, state, or destination"
-                      />
-                      {errors.projectLocation && (
-                        <p className={fieldError}>
-                          {errors.projectLocation.message}
-                        </p>
-                      )}
-                    </label>
+                        <div className="border border-cream-100/14 bg-cream-100/[0.035] p-5 text-sm leading-7 text-cream-200/66">
+                          A focused ${siteConfig.designConsultation.price} video
+                          consultation is paid after the brief, then the weekday
+                          calendar unlocks for scheduling.
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <fieldset>
+                          <legend className={fieldLabel}>Project Type *</legend>
+                          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                            {projectTypes.map((type) => (
+                              <label
+                                key={type.value}
+                                className="block cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  value={type.value}
+                                  {...register("projectType")}
+                                  className="peer sr-only"
+                                />
+                                <span className={choiceTile}>{type.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.projectType && (
+                            <p className={fieldError}>
+                              {errors.projectType.message}
+                            </p>
+                          )}
+                        </fieldset>
 
-                    <fieldset>
-                      <legend className={fieldLabel}>Design Budget *</legend>
-                      <p className="-mt-1 mb-3 font-label text-[8px] text-cream-100/38">
-                        Minimum {formatCurrency(siteConfig.minimumBudget)}
-                      </p>
-                      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                        {budgetOptions.map((option) => (
-                          <label key={option.value} className="block cursor-pointer">
-                            <input
-                              type="radio"
-                              value={option.value}
-                              {...register("budget")}
-                              className="peer sr-only"
-                            />
-                            <span className={choiceTile}>{option.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {errors.budget && (
-                        <p className={fieldError}>{errors.budget.message}</p>
-                      )}
-                    </fieldset>
+                        <label
+                          className={fieldFrame}
+                          htmlFor="projectLocation"
+                        >
+                          <span className={fieldLabel}>
+                            Project Location *
+                          </span>
+                          <input
+                            id="projectLocation"
+                            {...register("projectLocation")}
+                            className={fieldControl}
+                            placeholder="City, state, or destination"
+                          />
+                          {errors.projectLocation && (
+                            <p className={fieldError}>
+                              {errors.projectLocation.message}
+                            </p>
+                          )}
+                        </label>
 
-                    <fieldset>
-                      <legend className={fieldLabel}>Timeline *</legend>
-                      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-                        {timelineOptions.map((option) => (
-                          <label key={option.value} className="block cursor-pointer">
-                            <input
-                              type="radio"
-                              value={option.value}
-                              {...register("timeline")}
-                              className="peer sr-only"
-                            />
-                            <span className={choiceTile}>{option.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {errors.timeline && (
-                        <p className={fieldError}>{errors.timeline.message}</p>
-                      )}
-                    </fieldset>
+                        <fieldset>
+                          <legend className={fieldLabel}>Design Budget *</legend>
+                          <p className="-mt-1 mb-3 font-label text-[8px] text-cream-100/38">
+                            Minimum {formatCurrency(siteConfig.minimumBudget)}
+                          </p>
+                          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                            {budgetOptions.map((option) => (
+                              <label
+                                key={option.value}
+                                className="block cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  value={option.value}
+                                  {...register("budget")}
+                                  className="peer sr-only"
+                                />
+                                <span className={choiceTile}>
+                                  {option.label}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.budget && (
+                            <p className={fieldError}>
+                              {errors.budget.message}
+                            </p>
+                          )}
+                        </fieldset>
+
+                        <fieldset>
+                          <legend className={fieldLabel}>Timeline *</legend>
+                          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+                            {timelineOptions.map((option) => (
+                              <label
+                                key={option.value}
+                                className="block cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  value={option.value}
+                                  {...register("timeline")}
+                                  className="peer sr-only"
+                                />
+                                <span className={choiceTile}>
+                                  {option.label}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.timeline && (
+                            <p className={fieldError}>
+                              {errors.timeline.message}
+                            </p>
+                          )}
+                        </fieldset>
+                      </>
+                    )}
                   </motion.div>
                 )}
 
@@ -564,32 +939,58 @@ export default function ClientScreeningForm() {
                   >
                     <label className={fieldFrame} htmlFor="projectDescription">
                       <span className="flex items-center justify-between gap-4">
-                        <span className={fieldLabel}>Project Description *</span>
+                        <span className={fieldLabel}>
+                          {isDesignConsultation
+                            ? "What Should Peter Review? *"
+                            : "Project Description *"}
+                        </span>
                         <span
                           className={cn(
                             "font-label text-[8px]",
-                            projectDescriptionCharacterCount >= 50
+                            projectDescriptionCharacterCount >=
+                              projectDescriptionMinimum
                               ? "text-gold"
                               : "text-cream-100/36"
                           )}
                         >
-                          {Math.min(projectDescriptionCharacterCount, 50)}/50
+                          {Math.min(
+                            projectDescriptionCharacterCount,
+                            projectDescriptionMinimum
+                          )}
+                          /{projectDescriptionMinimum}
                         </span>
                       </span>
                       <textarea
                         id="projectDescription"
                         {...projectDescriptionRegistration}
                         rows={4}
-                        placeholder="Residence, goals, constraints, and priorities"
+                        placeholder={
+                          isDesignConsultation
+                            ? "Room, decision, options, links, constraints, and what needs to be solved"
+                            : "Residence, goals, constraints, and priorities"
+                        }
                         className={`${fieldControl} resize-none`}
                       />
-                      {projectDescriptionCharacterCount < 50 &&
+                      {projectDescriptionCharacterCount <
+                        projectDescriptionMinimum &&
                         errors.projectDescription && (
                         <p className={fieldError}>
                           {errors.projectDescription.message}
                         </p>
                       )}
                     </label>
+
+                    {isDesignConsultation && (
+                      <label className={fieldFrame} htmlFor="imageLinks">
+                        <span className={fieldLabel}>Image Links</span>
+                        <input
+                          id="imageLinks"
+                          {...register("imageLinks")}
+                          placeholder="Shared folder, product links, artwork URLs"
+                          className={fieldControl}
+                        />
+                      </label>
+                    )}
 
                     <label className={fieldFrame} htmlFor="inspiration">
                       <span className={fieldLabel}>Design Inspiration</span>
@@ -607,7 +1008,9 @@ export default function ClientScreeningForm() {
                         <div>
                           <p className={fieldLabel}>Attachments</p>
                           <p className="text-sm leading-6 text-cream-200/56">
-                            Space photos, plans, inspiration
+                            {isDesignConsultation
+                              ? "Room photos, screenshots, floor plan, product options"
+                              : "Space photos, plans, inspiration"}
                           </p>
                         </div>
                         <p className="font-label text-[8px] text-cream-100/36">
@@ -700,6 +1103,19 @@ export default function ClientScreeningForm() {
                 )}
               </AnimatePresence>
 
+              {paymentMessage && paymentStatus !== "idle" && (
+                <p
+                  className={cn(
+                    "mt-6 border border-cream-100/14 bg-cream-100/[0.035] px-4 py-3 text-sm leading-6",
+                    paymentStatus === "error" || paymentStatus === "cancelled"
+                      ? "text-red-200"
+                      : "text-cream-200/72"
+                  )}
+                >
+                  {paymentMessage}
+                </p>
+              )}
+
               <div className="mt-7 flex flex-col-reverse gap-4 border-t border-cream-100/12 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 {step > 1 ? (
                   <button
@@ -727,10 +1143,25 @@ export default function ClientScreeningForm() {
                 ) : (
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isPaying}
                     className="inline-flex w-full items-center justify-center gap-3 bg-cream-100 px-8 py-3.5 font-label text-[10px] text-charcoal shadow-[0_18px_42px_rgba(0,0,0,0.22)] transition-colors duration-300 hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
-                    {isSubmitting ? "Submitting..." : "Send Private Inquiry"}
+                    {isDesignConsultation ? (
+                      <>
+                        {isPaying ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CreditCard className="h-4 w-4" />
+                        )}
+                        {isPaying
+                          ? "Opening Checkout..."
+                          : <>Pay ${siteConfig.designConsultation.price} And Unlock Calendar</>}
+                      </>
+                    ) : isSubmitting ? (
+                      "Submitting..."
+                    ) : (
+                      "Send Private Inquiry"
+                    )}
                   </button>
                 )}
               </div>

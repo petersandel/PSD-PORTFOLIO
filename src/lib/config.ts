@@ -30,6 +30,7 @@ export const navigation = [
   { name: "Work", href: "/work" },
   { name: "Studio", href: "/studio" },
   { name: "Services", href: "/services" },
+  { name: "Press", href: "/press" },
   { name: "Shop", href: "https://provenanceandpatina.com", external: true },
   { name: "Inquire", href: "/contact" },
 ];

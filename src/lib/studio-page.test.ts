@@ -54,3 +54,8 @@ test("studio page typography stays restrained across hero and content sections",
   assert.doesNotMatch(studioPageSource, /font-accent text-4xl|font-accent text-3xl/);
   assert.doesNotMatch(studioPageSource, /font-display text-4xl leading-\[1\.04\][\s\S]*?lg:text-6xl/);
 });
+
+test("studio material-library eyebrow reads The Studio", () => {
+  assert.match(studioPageSource, /<p className="font-label text-\[10px\] text-gold">The Studio<\/p>/);
+  assert.doesNotMatch(studioPageSource, />The Atelier</);
+});

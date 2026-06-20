@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { ClientScreeningForm } from "@/components";
 import { BreadcrumbSchema } from "@/components/JsonLd";
-import DesignConsultationBookingClient from "./DesignConsultationBookingClient";
 
 export const metadata: Metadata = {
   title: "Book a One-Hour Design Consultation | Peter Sandel Design",
@@ -21,7 +21,9 @@ export default function DesignConsultationBookingPage() {
           },
         ]}
       />
-      <DesignConsultationBookingClient />
+      <section className="bg-charcoal px-6 py-28 text-cream-100 md:px-10 lg:px-14 lg:py-32">
+        <ClientScreeningForm initialInquiryType="design-consultation" />
+      </section>
     </>
   );
 }

@@ -10,3 +10,8 @@ test("contact hero overlay is bottom-center aligned", () => {
     /absolute inset-0 flex items-end justify-center px-6 pb-16 pt-32 text-center md:px-10 md:pb-20 lg:pb-24 xl:pb-28/,
   );
 });
+
+test("contact hero image is contained on wide screens instead of cropped", () => {
+  assert.match(contactPageSource, /className="object-contain object-center"/);
+  assert.doesNotMatch(contactPageSource, /className="object-cover object-top"/);
+});

@@ -240,6 +240,28 @@ textarea {
   display: none;
 }
 
+.project-index-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 175, 166, 0.72) rgba(245, 244, 240, 0.12);
+}
+
+.project-index-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.project-index-scroll::-webkit-scrollbar-track {
+  background: rgba(245, 244, 240, 0.12);
+}
+
+.project-index-scroll::-webkit-scrollbar-thumb {
+  background: rgba(184, 175, 166, 0.72);
+  border-radius: 999px;
+}
+
+.project-index-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 175, 166, 0.94);
+}
+
 /* ===== LUXURY COMPONENTS ===== */
 
 /* Gold Underline Effect */

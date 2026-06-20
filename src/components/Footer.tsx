@@ -7,10 +7,7 @@ import { siteConfig, navigation } from "@/lib/config";
 import BrandLogo from "./BrandLogo";
 import NewsletterSignup from "./NewsletterSignup";
 
-const footerNavigation = [
-  ...navigation.slice(0, 4),
-  { name: "Press", href: "/press" },
-];
+const footerNavigation = navigation.slice(0, 4);
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

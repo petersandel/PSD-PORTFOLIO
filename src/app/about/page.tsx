@@ -146,7 +146,7 @@ export default function AboutPage() {
       <section className="grid bg-charcoal text-cream-100 lg:grid-cols-[0.42fr_0.58fr]">
         <div className="flex items-center px-6 py-16 md:px-10 lg:order-1 lg:px-14">
           <div className="max-w-md">
-            <p className="font-label text-[10px] text-gold">The Atelier</p>
+            <p className="font-label text-[10px] text-gold">The Studio</p>
             <h2 className="mt-5 font-display text-2xl leading-[1.1] [letter-spacing:0] md:text-3xl">
               The studio is both creative headquarters and material library.
             </h2>

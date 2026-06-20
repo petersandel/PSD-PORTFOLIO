@@ -63,7 +63,7 @@ export default function ContactPage() {
             alt="Head of the Harbor bedroom with layered textiles, open terrace doors, and tailored architectural detail"
             fill
             priority
-            className="object-cover object-top"
+            className="object-contain object-center"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(31,37,34,0.34)_0%,rgba(31,37,34,0.18)_36%,rgba(31,37,34,0.06)_62%,rgba(31,37,34,0)_82%),linear-gradient(180deg,rgba(31,37,34,0.16)_0%,rgba(31,37,34,0.03)_38%,rgba(31,37,34,0.22)_100%)]" />

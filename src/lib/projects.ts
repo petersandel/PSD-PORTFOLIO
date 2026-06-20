@@ -25,7 +25,7 @@ export function getProjectHeroImage(project: Project): string {
   return project.image;
 }
 
-export const projects: Project[] = [
+const projectCatalog: Project[] = [
   {
     id: "8",
     title: "Head of the Harbor",
@@ -441,3 +441,25 @@ export const projects: Project[] = [
     ],
   },
 ];
+
+const workPageProjectOrder = [
+  "head-of-the-harbor",
+  "houston",
+  "pool-house",
+  "greenwich-west",
+  "ps-apartment",
+  "hudson-yards",
+  "michigan-avenue",
+  "design-studio",
+  "st-regis-singapore",
+] as const;
+
+export const projects: Project[] = workPageProjectOrder.map((slug) => {
+  const project = projectCatalog.find((item) => item.slug === slug);
+
+  if (!project) {
+    throw new Error(`Missing project for work page order: ${slug}`);
+  }
+
+  return project;
+});

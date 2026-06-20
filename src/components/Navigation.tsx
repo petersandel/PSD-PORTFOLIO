@@ -81,7 +81,7 @@ export default function Navigation() {
         )}
       >
         <nav className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between">
+          <div className="flex h-24 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="group relative" data-cursor="pointer">
               <motion.div

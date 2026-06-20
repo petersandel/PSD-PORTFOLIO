@@ -96,6 +96,23 @@ test("does not expose Dupont Circle as a work project", () => {
   );
 });
 
+test("portfolio projects follow the approved work page order", () => {
+  assert.deepEqual(
+    projects.map((project) => project.slug),
+    [
+      "head-of-the-harbor",
+      "houston",
+      "pool-house",
+      "greenwich-west",
+      "ps-apartment",
+      "hudson-yards",
+      "michigan-avenue",
+      "design-studio",
+      "st-regis-singapore",
+    ],
+  );
+});
+
 test("PS Apartment gallery omits removed work page images", () => {
   const psApartment = projects.find(
     (project) => project.slug === "ps-apartment",
