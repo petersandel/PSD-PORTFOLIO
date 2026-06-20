@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120">
+  <style>
+    .logo-text { 
+      font-family: 'Times New Roman', Georgia, serif;
+      fill: #1a1a1a;
+    }
+  </style>
+  <!-- Monogram P with embedded smaller P -->
+  <text x="100" y="70" text-anchor="middle" font-family="'Didot', 'Times New Roman', Georgia, serif" font-size="80" font-weight="400" fill="#1a1a1a">P</text>
+  <!-- Brand name -->
+  <text x="100" y="105" text-anchor="middle" class="logo-text" font-size="11" letter-spacing="0.15em">PROVENANCE &amp; PATINA</text>
+</svg>

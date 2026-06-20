@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
+  <style>
+    .logo-text { 
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 400;
+      fill: #464D4A;
+      letter-spacing: 0.05em;
+    }
+  </style>
+  <text x="0" y="24" class="logo-text" font-size="22">PETER</text>
+  <text x="0" y="48" class="logo-text" font-size="22">SANDEL</text>
+  <text x="0" y="72" class="logo-text" font-size="22">DESIGN</text>
+</svg>

@@ -1,26 +1,722 @@
 @import "tailwindcss";
 
+/* ===== LUXURY DESIGN SYSTEM FOR PETER SANDEL INTERIOR DESIGN ===== */
+
+@theme {
+  /* Primary Colors - Warm Whites & Creams */
+  --color-cream-100: #FAF9F7;
+  --color-cream-200: #F5F4F0;
+  --color-cream-300: #EDE9E3;
+  --color-ivory: #FFFEF5;
+  
+  /* Sophisticated Neutrals - Farrow & Ball Studio Green */
+  --color-charcoal: #464D4A; /* Studio Green No.93 */
+  --color-graphite: #5A625E;
+  --color-stone: #6B736F;
+  --color-pewter: #8E8E8E;
+  
+  /* Warm Stone Accent */
+  --color-gold: #B8AFA6;
+  --color-gold-dark: #9A928A;
+  --color-gold-light: #CEC6BD;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #464D4A; /* Studio Green No.93 */
+  --foreground: #FAF9F7; /* Cream */
+  
+  /* Warm Stone Accent Colors */
+  --color-gold-primary: #B8AFA6;
+  --color-gold-dark: #9A928A;
+  --color-gold-light: #CEC6BD;
+  
+  /* Luxury Timing */
+  --duration-instant: 150ms;
+  --duration-fast: 300ms;
+  --duration-normal: 500ms;
+  --duration-luxury: 700ms;
+  --duration-grand: 1000ms;
+  --duration-cinematic: 1400ms;
+  
+  /* Luxury Easing */
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  
+  /* Legacy Transitions (kept for compatibility) */
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-elegant: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ===== BASE STYLES ===== */
+
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
+  --font-swiss-editorial: "Suisse Intl", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: var(--font-swiss-editorial);
+  --font-body: var(--font-swiss-editorial);
+  --font-accent: var(--font-swiss-editorial);
+
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+
+/* ===== TYPOGRAPHY UTILITIES ===== */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.font-accent {
+  font-family: var(--font-accent);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+/* Modern Luxury Typography Scale */
+.font-display-xl {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.font-display-lg {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+}
+
+.font-body-lg {
+  font-family: var(--font-body);
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  line-height: 1.8;
+}
+
+.font-body-sm {
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+
+.font-label {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.overlay-subtitle {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-weight: 300;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  letter-spacing: 0;
+  color: rgba(255, 254, 245, 0.98);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 8px 28px rgba(0, 0, 0, 0.48),
+    0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 768px) {
+  .overlay-subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+/* ===== ELEGANT ANIMATIONS ===== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes goldShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Animation Utility Classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s var(--transition-elegant) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s var(--transition-smooth) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s var(--transition-elegant) forwards;
+}
+
+/* Staggered Animation Delays */
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-500 { animation-delay: 500ms; }
+
+/* Hide Scrollbar Utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== LUXURY COMPONENTS ===== */
+
+/* Gold Underline Effect */
+.gold-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.gold-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold-primary), transparent);
+}
+
+/* Elegant Button */
+.btn-luxury {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2.5rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-cream-100);
+  background: transparent;
+  border: 1px solid var(--color-cream-200);
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 0.5s var(--transition-elegant);
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--color-cream-100);
+  transition: left 0.5s var(--transition-elegant);
+  z-index: -1;
+}
+
+.btn-luxury:hover {
+  color: var(--color-charcoal);
+}
+
+.btn-luxury:hover::before {
+  left: 0;
+}
+
+/* Warm Stone Button Variant */
+.btn-gold {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2.5rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: transparent;
+  border-color: var(--color-gold-primary);
+  border-style: solid;
+  border-width: 1px;
+  color: var(--color-gold-primary);
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 0.5s var(--transition-elegant);
+}
+
+.btn-gold::before {
+  background: var(--color-gold-primary);
+}
+
+.btn-gold:hover {
+  color: var(--color-charcoal);
+}
+
+/* ===== SCROLL EFFECTS ===== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: all 1s var(--transition-elegant);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream-200);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-stone);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-graphite);
+}
+
+/* ===== IMAGE TREATMENTS ===== */
+
+.image-luxury {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-luxury::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(44, 44, 44, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+.image-luxury img {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.image-luxury:hover img {
+  transform: scale(1.05);
+}
+
+/* ===== VIDEO OVERLAY ===== */
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(44, 44, 44, 0.3) 0%,
+    rgba(44, 44, 44, 0.5) 100%
+  );
+  pointer-events: none;
+}
+
+/* ===== FORM STYLING ===== */
+
+.input-luxury {
+  width: 100%;
+  padding: 1rem 0 1.1rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-cream-100);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgb(250 249 247 / 0.24);
+  outline: none;
+  transition:
+    border-color 0.3s var(--transition-smooth),
+    box-shadow 0.3s var(--transition-smooth);
+}
+
+.input-luxury:focus {
+  border-color: var(--color-gold-primary);
+  box-shadow: 0 1px 0 0 var(--color-gold-primary);
+}
+
+.input-luxury::placeholder {
+  color: rgb(237 233 227 / 0.58);
+  font-style: italic;
+}
+
+/* Style select dropdowns for dark theme */
+.input-luxury option {
+  background: var(--color-graphite);
+  color: var(--color-cream-100);
+}
+
+/* ===== SELECTION STYLING ===== */
+
+::selection {
+  background: var(--color-gold-primary);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--color-gold-primary);
+  color: white;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+
+@media (max-width: 768px) {
+  .btn-luxury {
+    padding: 0.875rem 2rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* ===== PAGE TRANSITIONS ===== */
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* ===== PRELOADER ===== */
+
+.preloader-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #464D4A;
+}
+
+/* ===== SHIMMER LOADING STATES ===== */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-loading {
+  background: linear-gradient(
+    90deg,
+    var(--color-cream-200) 25%,
+    var(--color-cream-100) 50%,
+    var(--color-cream-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ===== CLIP-PATH REVEAL ===== */
+
+@keyframes clipReveal {
+  from {
+    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0% 0 0 0);
+    opacity: 1;
+  }
+}
+
+.animate-clip-reveal {
+  animation: clipReveal 0.7s var(--ease-luxury) forwards;
+}
+
+/* ===== TEXT REVEAL ===== */
+
+@keyframes textRevealLine {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.text-reveal-line {
+  overflow: hidden;
+}
+
+.text-reveal-line span {
+  display: block;
+  animation: textRevealLine 0.7s var(--ease-luxury) forwards;
+}
+
+/* ===== GOLD LINE DRAW ===== */
+
+@keyframes goldLineDraw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.gold-line-draw {
+  transform-origin: center;
+  animation: goldLineDraw 0.8s var(--ease-in-out) forwards;
+}
+
+/* ===== CUSTOM CURSOR (Phase 2 prep) ===== */
+
+@media (hover: hover) and (pointer: fine) {
+  .cursor-luxury {
+    cursor: none;
+  }
+}
+
+/* ===== SMOOTH SCROLL OVERRIDES ===== */
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ===== MARQUEE ANIMATION ===== */
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* ===== BUTTON MICRO-INTERACTIONS ===== */
+
+.btn-luxury-light {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2.5rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-cream-100);
+  background: transparent;
+  border: 1px solid var(--color-cream-200);
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 0.5s var(--transition-elegant);
+}
+
+.btn-luxury-light::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--color-cream-100);
+  transition: left 0.5s var(--transition-elegant);
+  z-index: -1;
+}
+
+.btn-luxury-light:hover {
+  color: var(--color-charcoal);
+}
+
+.btn-luxury-light:hover::before {
+  left: 0;
+}
+
+/* ===== LINK HOVER EFFECTS ===== */
+
+a[data-cursor="pointer"] {
+  transition: color 0.3s ease;
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-charcoal);
+  background: var(--color-cream-100);
+  border: 2px solid var(--color-gold-primary);
+  transition: top 0.3s ease;
+}
+
+.skip-to-content:focus {
+  top: 1rem;
+}
+
+/* Focus visible styles — gold outline for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-gold-primary);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Remove outline for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Ensure minimum contrast for small text on dark backgrounds */
+/* Gold on charcoal: #B8AFA6 on #464D4A = 3.0:1 (large text OK) */
+/* For small text, use gold-wcag which meets 4.5:1 */
+.text-gold-wcag {
+  color: #D4C5B0;
+}
+
+/* Ensure cream-200/40 meets contrast — bump to /50 minimum */
+.text-cream-subtle {
+  color: rgba(245, 244, 240, 0.5);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== FOCUS STYLES ===== */
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-gold-primary);
+  outline-offset: 2px;
 }
